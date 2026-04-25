@@ -1,0 +1,200 @@
+import React, { useEffect, useRef } from "react";
+import { ClerkProvider, SignIn, SignUp, Show, useClerk } from "@clerk/react";
+import { shadcn } from "@clerk/themes";
+import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from "wouter";
+import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import { setAuthTokenGetter } from "@workspace/api-client-react";
+import { queryClient } from "@/lib/queryClient";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import NotFound from "@/pages/not-found";
+
+import DashboardPage from "@/pages/dashboard";
+import PartnersPage from "@/pages/partners";
+import ServicesPage from "@/pages/services";
+
+const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
+const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+function stripBase(path: string): string {
+  return basePath && path.startsWith(basePath)
+    ? path.slice(basePath.length) || "/"
+    : path;
+}
+
+if (!clerkPubKey) {
+  throw new Error("Missing VITE_CLERK_PUBLISHABLE_KEY in .env file");
+}
+
+const clerkAppearance = {
+  theme: shadcn,
+  cssLayerName: "clerk",
+  options: {
+    logoPlacement: "inside" as const,
+    logoLinkUrl: basePath || "/",
+    logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
+  },
+  variables: {
+    colorPrimary: "hsl(16, 68%, 52%)", // #D85E31
+    colorForeground: "hsl(223, 48%, 11%)", // #0F172B
+    colorMutedForeground: "hsl(215, 16%, 47%)",
+    colorDanger: "hsl(0, 84%, 60%)",
+    colorBackground: "hsl(0, 0%, 100%)",
+    colorInput: "hsl(214, 32%, 91%)",
+    colorInputForeground: "hsl(223, 48%, 11%)",
+    colorNeutral: "hsl(214, 32%, 91%)",
+    fontFamily: "'Inter', sans-serif",
+    borderRadius: "0.5rem",
+  },
+  elements: {
+    rootBox: "w-full",
+    cardBox: "bg-white rounded-2xl w-[440px] max-w-full overflow-hidden",
+    card: "!shadow-none !border-0 !bg-transparent !rounded-none",
+    footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
+    headerTitle: "text-foreground font-display font-semibold",
+    headerSubtitle: "text-muted-foreground",
+    socialButtonsBlockButtonText: "text-foreground font-medium",
+    formFieldLabel: "text-foreground font-medium",
+    footerActionLink: "text-primary font-medium hover:text-accent",
+    footerActionText: "text-muted-foreground",
+    dividerText: "text-muted-foreground",
+    identityPreviewEditButton: "text-primary hover:text-accent",
+    formFieldSuccessText: "text-green-600",
+    alertText: "text-destructive",
+    logoBox: "flex justify-center mb-4",
+    logoImage: "h-10 object-contain",
+    socialButtonsBlockButton: "border-input hover:bg-secondary",
+    formButtonPrimary: "bg-primary hover:bg-primary/90 text-primary-foreground",
+    formFieldInput: "bg-background border-input text-foreground placeholder:text-muted-foreground",
+    footerAction: "bg-transparent",
+    dividerLine: "bg-border",
+    alert: "bg-destructive/10 border-destructive text-destructive",
+    otpCodeFieldInput: "border-input text-foreground",
+    formFieldRow: "mb-4",
+    main: "w-full",
+  },
+};
+
+function SignInPage() {
+  return (
+    <div className="flex min-h-[100dvh] items-center justify-center bg-secondary px-4">
+      <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
+    </div>
+  );
+}
+
+function SignUpPage() {
+  return (
+    <div className="flex min-h-[100dvh] items-center justify-center bg-secondary px-4">
+      <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
+    </div>
+  );
+}
+
+function HomeRedirect() {
+  return (
+    <>
+      <Show when="signed-in">
+        <Redirect to="/dashboard" />
+      </Show>
+      <Show when="signed-out">
+        <Redirect to="/sign-in" />
+      </Show>
+    </>
+  );
+}
+
+function ProtectedRoute({ component: Component }: { component: React.ComponentType<any> }) {
+  return (
+    <>
+      <Show when="signed-in">
+        <Component />
+      </Show>
+      <Show when="signed-out">
+        <Redirect to="/" />
+      </Show>
+    </>
+  );
+}
+
+function ClerkQueryClientCacheInvalidator() {
+  const clerk = useClerk();
+  const queryClient = useQueryClient();
+  const prevUserIdRef = useRef<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    setAuthTokenGetter(async () => {
+      try {
+        return (await clerk.session?.getToken()) ?? null;
+      } catch {
+        return null;
+      }
+    });
+    return () => setAuthTokenGetter(null);
+  }, [clerk]);
+
+  useEffect(() => {
+    const unsubscribe = clerk.addListener(({ user }) => {
+      const userId = user?.id ?? null;
+      if (
+        prevUserIdRef.current !== undefined &&
+        prevUserIdRef.current !== userId
+      ) {
+        queryClient.clear();
+      }
+      prevUserIdRef.current = userId;
+    });
+    return unsubscribe;
+  }, [clerk, queryClient]);
+
+  return null;
+}
+
+function ClerkProviderWithRoutes() {
+  const [, setLocation] = useLocation();
+
+  return (
+    <ClerkProvider
+      publishableKey={clerkPubKey}
+      proxyUrl={clerkProxyUrl}
+      appearance={clerkAppearance}
+      signInUrl={`${basePath}/sign-in`}
+      signUpUrl={`${basePath}/sign-up`}
+      routerPush={(to) => setLocation(stripBase(to))}
+      routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
+    >
+      <QueryClientProvider client={queryClient}>
+        <ClerkQueryClientCacheInvalidator />
+        <Switch>
+          <Route path="/" component={HomeRedirect} />
+          <Route path="/sign-in/*?" component={SignInPage} />
+          <Route path="/sign-up/*?" component={SignUpPage} />
+          <Route path="/dashboard">
+            {() => <ProtectedRoute component={DashboardPage} />}
+          </Route>
+          <Route path="/partners">
+            {() => <ProtectedRoute component={PartnersPage} />}
+          </Route>
+          <Route path="/services">
+            {() => <ProtectedRoute component={ServicesPage} />}
+          </Route>
+          <Route component={NotFound} />
+        </Switch>
+      </QueryClientProvider>
+    </ClerkProvider>
+  );
+}
+
+function App() {
+  return (
+    <TooltipProvider>
+      <WouterRouter base={basePath}>
+        <ClerkProviderWithRoutes />
+      </WouterRouter>
+      <Toaster />
+    </TooltipProvider>
+  );
+}
+
+export default App;
