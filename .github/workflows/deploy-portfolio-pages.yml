@@ -31,6 +31,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -41,6 +44,7 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -48,6 +52,7 @@ jobs:
       - name: Build portfolio preview
         run: pnpm --filter @workspace/portfolio run build
         env:
+          NODE_ENV: production
           PORT: 4173
           BASE_PATH: /Portfolio-Admin-Suite/
 
