@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Globe, ExternalLink } from "lucide-react";
+import { Plus, Edit, Trash2, Globe, Users } from "lucide-react";
 import { toast } from "sonner";
 
 const partnerSchema = z.object({
@@ -49,6 +49,7 @@ type PartnerFormValues = z.infer<typeof partnerSchema>;
 export default function PartnersPage() {
   const queryClient = useQueryClient();
   const { data: partners, isLoading } = useListPartners({ query: { queryKey: getListPartnersQueryKey() } });
+  const partnerList = Array.isArray(partners) ? partners : [];
   
   const createPartner = useCreatePartner();
   const updatePartner = useUpdatePartner();
@@ -468,7 +469,7 @@ export default function PartnersPage() {
               </Card>
             ))}
           </div>
-        ) : partners?.length === 0 ? (
+        ) : partnerList.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12 text-center border rounded-xl border-dashed bg-secondary/30">
             <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center mb-4">
               <Users className="h-6 w-6 text-muted-foreground" />
@@ -484,7 +485,7 @@ export default function PartnersPage() {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {partners?.map((partner) => (
+            {partnerList.map((partner) => (
               <Card key={partner.id} className="overflow-hidden group hover:border-primary/20 transition-colors">
                 <CardHeader className="p-5 flex flex-row items-start gap-4 space-y-0">
                   <div className="h-12 w-12 shrink-0 rounded-md bg-secondary flex items-center justify-center overflow-hidden border">
@@ -492,13 +493,13 @@ export default function PartnersPage() {
                       <img src={partner.logoUrl} alt={partner.name} className="h-full w-full object-cover bg-white" />
                     ) : (
                       <span className="text-muted-foreground font-display font-bold">
-                        {partner.name.substring(0, 2).toUpperCase()}
+                        {(partner.name ?? "?").substring(0, 2).toUpperCase()}
                       </span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <h3 className="font-display font-semibold truncate" title={partner.name}>{partner.name}</h3>
+                      <h3 className="font-display font-semibold truncate" title={partner.name ?? "Unnamed partner"}>{partner.name ?? "Unnamed partner"}</h3>
                     </div>
                     {partner.industry && (
                       <p className="text-xs text-muted-foreground mt-0.5 truncate">{partner.industry}</p>

@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button";
 export default function DashboardPage() {
   const { user } = useUser();
   const { data: summary, isLoading } = useGetDashboardSummary({ query: { queryKey: getGetDashboardSummaryQueryKey() } });
+  const recentPartners = Array.isArray(summary?.recentPartners) ? summary.recentPartners : [];
+  const recentServices = Array.isArray(summary?.recentServices) ? summary.recentServices : [];
 
   const stats = [
     {
@@ -116,13 +118,13 @@ export default function DashboardPage() {
                     </div>
                   ))}
                 </div>
-              ) : summary?.recentPartners.length === 0 ? (
+              ) : recentPartners.length === 0 ? (
                 <div className="text-center py-6 text-muted-foreground text-sm">
                   No partners added yet.
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {summary?.recentPartners.map((partner) => (
+                  {recentPartners.map((partner) => (
                     <div key={partner.id} className="flex items-center justify-between group">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center overflow-hidden border">
@@ -130,7 +132,7 @@ export default function DashboardPage() {
                             <img src={partner.logoUrl} alt={partner.name} className="h-full w-full object-cover" />
                           ) : (
                             <span className="text-muted-foreground font-medium text-xs">
-                              {partner.name.substring(0, 2).toUpperCase()}
+                              {(partner.name ?? "?").substring(0, 2).toUpperCase()}
                             </span>
                           )}
                         </div>
@@ -177,13 +179,13 @@ export default function DashboardPage() {
                     </div>
                   ))}
                 </div>
-              ) : summary?.recentServices.length === 0 ? (
+              ) : recentServices.length === 0 ? (
                 <div className="text-center py-6 text-muted-foreground text-sm">
                   No services added yet.
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {summary?.recentServices.map((service) => (
+                  {recentServices.map((service) => (
                     <div key={service.id} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-md bg-secondary flex items-center justify-center text-primary">

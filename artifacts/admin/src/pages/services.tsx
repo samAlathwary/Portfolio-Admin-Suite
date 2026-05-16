@@ -56,6 +56,7 @@ type ServiceFormValues = z.infer<typeof serviceSchema>;
 export default function ServicesPage() {
   const queryClient = useQueryClient();
   const { data: services, isLoading } = useListServices({ query: { queryKey: getListServicesQueryKey() } });
+  const serviceList = Array.isArray(services) ? services : [];
   
   const createService = useCreateService();
   const updateService = useUpdateService();
@@ -472,7 +473,7 @@ export default function ServicesPage() {
               </Card>
             ))}
           </div>
-        ) : services?.length === 0 ? (
+        ) : serviceList.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-12 text-center border rounded-xl border-dashed bg-secondary/30">
             <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center mb-4">
               <Layers className="h-6 w-6 text-muted-foreground" />
@@ -488,7 +489,7 @@ export default function ServicesPage() {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {services?.map((service) => (
+            {serviceList.map((service) => (
               <Card key={service.id} className={`overflow-hidden group transition-all duration-200 ${!service.active ? 'opacity-70 bg-secondary/50 hover:opacity-100' : 'hover:border-primary/20'}`}>
                 <CardHeader className="p-5 flex flex-row items-start gap-4 space-y-0">
                   <div className={`h-12 w-12 shrink-0 rounded-md flex items-center justify-center border ${service.active ? 'bg-primary/5 text-primary border-primary/10' : 'bg-secondary text-muted-foreground border-border'}`}>
@@ -496,7 +497,7 @@ export default function ServicesPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <h3 className="font-display font-semibold truncate" title={service.title}>{service.title}</h3>
+                      <h3 className="font-display font-semibold truncate" title={service.title ?? "Untitled service"}>{service.title ?? "Untitled service"}</h3>
                     </div>
                     <div className="flex flex-wrap gap-1 mt-1.5">
                       <Badge variant={service.active ? "default" : "secondary"} className="text-[10px] px-1.5 h-5 font-normal">
