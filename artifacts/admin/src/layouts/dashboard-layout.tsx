@@ -35,7 +35,7 @@ export function DashboardLayout({ children, title }: { children: React.ReactNode
   const [location] = useLocation();
   const { signOut } = useClerk();
   const { user } = useUser();
-
+  const safeLocation = typeof location === "string" ? location : "/";
   const navItems = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { label: "Partners", href: "/partners", icon: Users },
@@ -63,7 +63,7 @@ export function DashboardLayout({ children, title }: { children: React.ReactNode
                 icon={item.icon}
                 label={item.label}
                 href={item.href}
-                isActive={location === item.href}
+                isActive={safeLocation === item.href}
               />
             ))}
           </div>
@@ -102,7 +102,7 @@ export function DashboardLayout({ children, title }: { children: React.ReactNode
             <div className="flex items-center text-sm text-muted-foreground">
               <span>Admin</span>
               <ChevronRight className="h-4 w-4 mx-1" />
-              <span className="font-medium text-foreground capitalize">{location.slice(1) || "Dashboard"}</span>
+              <span className="font-medium text-foreground capitalize">{safeLocation.slice(1) || "Dashboard"}</span>
             </div>
           )}
         </header>

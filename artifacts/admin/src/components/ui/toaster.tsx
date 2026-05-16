@@ -10,10 +10,11 @@ import {
 
 export function Toaster() {
   const { toasts } = useToast()
+  const toastList = Array.isArray(toasts) ? toasts : []
 
   return (
     <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, ...props }) {
+      {toastList.map(function ({ id, title, description, action, ...props }) {
         return (
           <Toast key={id} {...props}>
             <div className="grid gap-1">
