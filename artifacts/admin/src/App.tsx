@@ -14,9 +14,18 @@ import PartnersPage from "@/pages/partners";
 import ServicesPage from "@/pages/services";
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+const basePath =
+  typeof import.meta.env.BASE_URL === "string"
+    ? import.meta.env.BASE_URL.replace(/\/$/, "")
+    : "";
+const signInPath = `${basePath}/sign-in`;
+const signUpPath = `${basePath}/sign-up`;
 
-function stripBase(path: string): string {
+function normalizeClerkPath(path: unknown): string {
+  if (typeof path !== "string" || path.length === 0) {
+    return "/";
+  }
+
   return basePath && path.startsWith(basePath)
     ? path.slice(basePath.length) || "/"
     : path;
@@ -78,7 +87,7 @@ const clerkAppearance = {
 function SignInPage() {
   return (
     <div className="flex min-h-[100dvh] items-center justify-center bg-secondary px-4">
-      <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} />
+      <SignIn routing="path" path={signInPath} signUpUrl={signUpPath} />
     </div>
   );
 }
@@ -86,7 +95,7 @@ function SignInPage() {
 function SignUpPage() {
   return (
     <div className="flex min-h-[100dvh] items-center justify-center bg-secondary px-4">
-      <SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`} />
+      <SignUp routing="path" path={signUpPath} signInUrl={signInPath} />
     </div>
   );
 }
@@ -157,10 +166,10 @@ function ClerkProviderWithRoutes() {
     <ClerkProvider
       publishableKey={clerkPubKey}
       appearance={clerkAppearance}
-      signInUrl={`${basePath}/sign-in`}
-      signUpUrl={`${basePath}/sign-up`}
-      routerPush={(to) => setLocation(stripBase(to))}
-      routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
+      signInUrl={signInPath}
+      signUpUrl={signUpPath}
+      routerPush={(to) => setLocation(normalizeClerkPath(to))}
+      routerReplace={(to) => setLocation(normalizeClerkPath(to), { replace: true })}
     >
       <QueryClientProvider client={queryClient}>
         <ClerkQueryClientCacheInvalidator />
@@ -187,7 +196,7 @@ function ClerkProviderWithRoutes() {
 function App() {
   return (
     <TooltipProvider>
-      <WouterRouter base={basePath}>
+      <WouterRouter base={basePath || undefined}>
         <ClerkProviderWithRoutes />
       </WouterRouter>
       <Toaster />
