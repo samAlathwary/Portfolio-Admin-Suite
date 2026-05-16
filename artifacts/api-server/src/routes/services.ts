@@ -8,7 +8,7 @@ import {
   UpdateServiceParams,
   DeleteServiceParams,
 } from "@workspace/api-zod";
-import { requireAuth } from "../middlewares/requireAuth";
+import { requireAdmin } from "../middlewares/requireAuth";
 
 const router: IRouter = Router();
 
@@ -40,7 +40,7 @@ router.get("/services/:id", async (req, res): Promise<void> => {
   res.json(service);
 });
 
-router.post("/services", requireAuth, async (req, res): Promise<void> => {
+router.post("/services", requireAdmin, async (req, res): Promise<void> => {
   const parsed = CreateServiceBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -54,7 +54,7 @@ router.post("/services", requireAuth, async (req, res): Promise<void> => {
   res.status(201).json(service);
 });
 
-router.patch("/services/:id", requireAuth, async (req, res): Promise<void> => {
+router.patch("/services/:id", requireAdmin, async (req, res): Promise<void> => {
   const params = UpdateServiceParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -81,7 +81,7 @@ router.patch("/services/:id", requireAuth, async (req, res): Promise<void> => {
   res.json(service);
 });
 
-router.delete("/services/:id", requireAuth, async (req, res): Promise<void> => {
+router.delete("/services/:id", requireAdmin, async (req, res): Promise<void> => {
   const params = DeleteServiceParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
