@@ -1,10 +1,11 @@
 import { Router, type IRouter } from "express";
 import { desc, sql, eq } from "drizzle-orm";
 import { db, partnersTable, servicesTable } from "@workspace/db";
+import { requireAdmin } from "../middlewares/requireAuth";
 
 const router: IRouter = Router();
 
-router.get("/dashboard/summary", async (_req, res): Promise<void> => {
+router.get("/dashboard/summary", requireAdmin, async (_req, res): Promise<void> => {
   const [partnerCounts] = await db
     .select({
       total: sql<number>`count(*)::int`,
