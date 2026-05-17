@@ -3,7 +3,7 @@ import { ClerkProvider, SignIn, SignUp, Show, useClerk } from "@clerk/react";
 import { shadcn } from "@clerk/themes";
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
-import { setAuthTokenGetter } from "@workspace/api-client-react";
+import { setAuthTokenGetter, setBaseUrl } from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,12 +14,18 @@ import PartnersPage from "@/pages/partners";
 import ServicesPage from "@/pages/services";
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+const apiBaseUrl =
+  typeof import.meta.env.VITE_API_BASE_URL === "string"
+    ? import.meta.env.VITE_API_BASE_URL.replace(/\/+$/, "")
+    : "";
 const basePath =
   typeof import.meta.env.BASE_URL === "string"
     ? import.meta.env.BASE_URL.replace(/\/$/, "")
     : "";
 const signInPath = `${basePath}/sign-in`;
 const signUpPath = `${basePath}/sign-up`;
+
+setBaseUrl(apiBaseUrl || null);
 
 function normalizeClerkPath(path: unknown): string {
   if (typeof path !== "string" || path.length === 0) {
