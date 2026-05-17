@@ -8,12 +8,13 @@ import {
   type Variants,        // ← typed as Variants to fix the TS errors
 } from "framer-motion";
 import {
-  ArrowRight, BarChart3, Users, Building2,
+  ArrowRight, Users, Building2,
   TrendingUp, Languages, Sun, Moon, Sparkles, ChevronDown,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import PartnersSection from "@/components/sections/PartnersSection";
+import ServicesSection from "@/components/sections/ServicesSection";
 import ContactModal from "@/components/ui/ContactModal";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
@@ -443,66 +444,10 @@ export default function Home() {
       </section>
 
       {/* ── SERVICES ── */}
-      <section id="services" className="py-16 md:py-24 bg-muted/30 relative overflow-hidden">
-        <FloatingOrb className="hidden md:block top-0 right-0 w-96 h-96 bg-primary/50" />
-        <div className="container mx-auto px-4 md:px-8 relative z-10">
-          <motion.div
-            className="text-center max-w-2xl mx-auto mb-10 md:mb-16"
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            <motion.h2 variants={itemVariants} className="text-primary font-semibold tracking-wider uppercase text-sm mb-3">
-              {t.services.label}
-            </motion.h2>
-            <motion.h3 variants={itemVariants} className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              {t.services.title}
-            </motion.h3>
-            <motion.p variants={itemVariants} className="text-base md:text-lg text-muted-foreground">
-              {t.services.description}
-            </motion.p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 md:gap-8">
-            {[
-              { icon: BarChart3, ...t.services.s1 },
-              { icon: Building2, ...t.services.s2 },
-              { icon: TrendingUp, ...t.services.s3 },
-            ].map((service, index) => (
-              <motion.div
-                key={index}
-                className="bg-card p-6 md:p-8 rounded-2xl shadow-sm border border-border group cursor-default relative overflow-hidden"
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.12, ease: [0.22, 1, 0.36, 1] }}
-                whileHover={{ y: -6, boxShadow: "0 20px 60px rgba(0,0,0,0.12)" }}
-              >
-                <motion.div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl" />
-                <motion.div
-                  className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-accent border border-border flex items-center justify-center mb-5 md:mb-6 relative"
-                  whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
-                  transition={{ duration: 0.4 }}
-                >
-                  <service.icon className="h-7 w-7 md:h-8 md:w-8 text-primary" />
-                </motion.div>
-                <h4 className="text-lg md:text-xl font-bold text-foreground mb-2 md:mb-3 relative">{service.title}</h4>
-                <p className="text-sm md:text-base text-muted-foreground leading-relaxed relative">{service.desc}</p>
-                <motion.div
-                  className="absolute bottom-0 left-0 h-1 bg-primary rounded-b-2xl"
-                  initial={{ width: "0%" }}
-                  whileHover={{ width: "100%" }}
-                  transition={{ duration: 0.3 }}
-                />
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <ServicesSection lang={lang} />
 
       {/* ── PARTNERS ── */}
-     {/*<PartnersSection lang={lang} />*/}
+      <PartnersSection lang={lang} />
 
       {/* ── CTA ── */}
       <section className="py-16 md:py-24 bg-slate-900 relative overflow-hidden">

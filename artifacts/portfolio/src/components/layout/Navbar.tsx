@@ -54,7 +54,7 @@ export default function Navbar({ lang, t, onContactClick }: NavbarProps) {
   const navLinks = [
     { id: "about", label: t.about },
     { id: "services", label: t.services },
-   // { id: "partners", label: t.partners },
+    { id: "partners", label: t.partners },
   ];
 
   return (
