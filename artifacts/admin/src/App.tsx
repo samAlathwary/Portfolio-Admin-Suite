@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from "react";
-import { ClerkProvider, SignIn, SignUp, Show, useClerk } from "@clerk/react";
+import React, { useEffect, useRef, useState } from "react";
+import { ClerkProvider, SignIn, SignUp, Show, useAuth } from "@clerk/react";
 import { shadcn } from "@clerk/themes";
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
@@ -132,37 +132,46 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
   );
 }
 
-function ClerkQueryClientCacheInvalidator() {
-  const clerk = useClerk();
+function ClerkAuthBridge({ children }: { children: React.ReactNode }) {
+  const { isLoaded, getToken, userId } = useAuth();
   const queryClient = useQueryClient();
+  const [authReady, setAuthReady] = useState(false);
   const prevUserIdRef = useRef<string | null | undefined>(undefined);
 
   useEffect(() => {
+    if (!isLoaded) {
+      setAuthReady(false);
+      return;
+    }
+
     setAuthTokenGetter(async () => {
       try {
-        return (await clerk.session?.getToken()) ?? null;
+        return (await getToken()) ?? null;
       } catch {
         return null;
       }
     });
-    return () => setAuthTokenGetter(null);
-  }, [clerk]);
+    setAuthReady(true);
+
+    return () => {
+      setAuthTokenGetter(null);
+      setAuthReady(false);
+    };
+  }, [getToken, isLoaded]);
 
   useEffect(() => {
-    const unsubscribe = clerk.addListener(({ user }) => {
-      const userId = user?.id ?? null;
-      if (
-        prevUserIdRef.current !== undefined &&
-        prevUserIdRef.current !== userId
-      ) {
-        queryClient.clear();
-      }
-      prevUserIdRef.current = userId;
-    });
-    return unsubscribe;
-  }, [clerk, queryClient]);
+    if (prevUserIdRef.current !== undefined && prevUserIdRef.current !== userId) {
+      queryClient.clear();
+    }
 
-  return null;
+    prevUserIdRef.current = userId ?? null;
+  }, [queryClient, userId]);
+
+  if (!isLoaded || !authReady) {
+    return null;
+  }
+
+  return <>{children}</>;
 }
 
 function ClerkProviderWithRoutes() {
@@ -178,22 +187,23 @@ function ClerkProviderWithRoutes() {
       routerReplace={(to) => setLocation(normalizeClerkPath(to), { replace: true })}
     >
       <QueryClientProvider client={queryClient}>
-        <ClerkQueryClientCacheInvalidator />
-        <Switch>
-          <Route path="/" component={HomeRedirect} />
-          <Route path="/sign-in/*?" component={SignInPage} />
-          <Route path="/sign-up/*?" component={SignUpPage} />
-          <Route path="/dashboard">
-            {() => <ProtectedRoute component={DashboardPage} />}
-          </Route>
-          <Route path="/partners">
-            {() => <ProtectedRoute component={PartnersPage} />}
-          </Route>
-          <Route path="/services">
-            {() => <ProtectedRoute component={ServicesPage} />}
-          </Route>
-          <Route component={NotFound} />
-        </Switch>
+        <ClerkAuthBridge>
+          <Switch>
+            <Route path="/" component={HomeRedirect} />
+            <Route path="/sign-in/*?" component={SignInPage} />
+            <Route path="/sign-up/*?" component={SignUpPage} />
+            <Route path="/dashboard">
+              {() => <ProtectedRoute component={DashboardPage} />}
+            </Route>
+            <Route path="/partners">
+              {() => <ProtectedRoute component={PartnersPage} />}
+            </Route>
+            <Route path="/services">
+              {() => <ProtectedRoute component={ServicesPage} />}
+            </Route>
+            <Route component={NotFound} />
+          </Switch>
+        </ClerkAuthBridge>
       </QueryClientProvider>
     </ClerkProvider>
   );
