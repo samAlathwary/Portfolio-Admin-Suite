@@ -615,41 +615,39 @@ export default function ServicesPage() {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="p-5 pt-0 flex flex-col h-full justify-between gap-4">
+                <CardContent className="p-5 pt-0">
                   <p className="text-sm text-muted-foreground line-clamp-3 min-h-[60px]">
                     {service.description || "No description provided."}
                   </p>
                   {(service.activeFrom || service.activeUntil) && (
-                    <div className="rounded-lg border border-border/60 bg-secondary/40 px-3 py-2 text-xs text-muted-foreground">
+                    <div className="mt-4 rounded-lg border border-border/60 bg-secondary/40 px-3 py-2 text-xs text-muted-foreground">
                       {service.activeFrom ? `From: ${formatSchedule(service.activeFrom)}` : "From: Immediately"}
                       <br />
                       {service.activeUntil ? `Until: ${formatSchedule(service.activeUntil)}` : "Until: No end date"}
                     </div>
                   )}
                   
-                  <div className="flex flex-col gap-3 pt-4 border-t border-border/50">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Switch 
-                          checked={service.active} 
-                          onCheckedChange={(checked) => toggleActiveStatus(service, checked)}
-                          disabled={updateService.isPending}
-                        />
-                        <span className="text-xs text-muted-foreground font-medium">
-                          {service.active ? "Visible on site" : "Hidden"}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => handleEdit(service)}>
-                          <Edit className="h-4 w-4" />
-                          <span className="sr-only">Edit</span>
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => setServiceToDelete(service.id)}>
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">Delete</span>
-                        </Button>
-                      </div>
+                  <div className="flex items-center justify-between pt-4 mt-4 border-t border-border/50">
+                    <div className="flex items-center gap-2">
+                      <Switch 
+                        checked={service.active} 
+                        onCheckedChange={(checked) => toggleActiveStatus(service, checked)}
+                        disabled={updateService.isPending}
+                      />
+                      <span className="text-xs text-muted-foreground font-medium">
+                        {service.active ? "Visible on site" : "Hidden"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => handleEdit(service)}>
+                        <Edit className="h-4 w-4" />
+                        <span className="sr-only">Edit</span>
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => setServiceToDelete(service.id)}>
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Delete</span>
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
