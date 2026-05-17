@@ -153,7 +153,7 @@ export default function ServicesSection({ lang }: ServicesSectionProps) {
             <CarouselContent className="-ml-5">
               {visibleServices.map((service, index) => (
                 <CarouselItem
-                  key={service.id ?? `${service.title}-${index}`}
+                  key={"id" in service ? service.id : `${service.title}-${index}`}
                   className="pl-5 basis-full md:basis-1/2 xl:basis-1/3"
                 >
                   <motion.div

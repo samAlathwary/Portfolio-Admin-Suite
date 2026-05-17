@@ -414,6 +414,12 @@ components:
           type: ["string", "null"]
         active:
           type: boolean
+        activeFrom:
+          type: ["string", "null"]
+          format: date-time
+        activeUntil:
+          type: ["string", "null"]
+          format: date-time
         displayOrder:
           type: integer
         createdAt:
@@ -428,6 +434,8 @@ components:
         - description
         - icon
         - active
+        - activeFrom
+        - activeUntil
         - displayOrder
         - createdAt
         - updatedAt
@@ -444,6 +452,12 @@ components:
           type: ["string", "null"]
         active:
           type: boolean
+        activeFrom:
+          type: ["string", "null"]
+          format: date-time
+        activeUntil:
+          type: ["string", "null"]
+          format: date-time
         displayOrder:
           type: integer
       required:
@@ -461,6 +475,12 @@ components:
           type: ["string", "null"]
         active:
           type: boolean
+        activeFrom:
+          type: ["string", "null"]
+          format: date-time
+        activeUntil:
+          type: ["string", "null"]
+          format: date-time
         displayOrder:
           type: integer
 

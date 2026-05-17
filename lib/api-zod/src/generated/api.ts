@@ -45,6 +45,8 @@ export const GetDashboardSummaryResponse = zod.object({
       description: zod.string().nullable(),
       icon: zod.string().nullable(),
       active: zod.boolean(),
+      activeFrom: zod.coerce.date().nullable(),
+      activeUntil: zod.coerce.date().nullable(),
       displayOrder: zod.number(),
       createdAt: zod.coerce.date(),
       updatedAt: zod.coerce.date(),
@@ -151,6 +153,8 @@ export const ListServicesResponseItem = zod.object({
   description: zod.string().nullable(),
   icon: zod.string().nullable(),
   active: zod.boolean(),
+  activeFrom: zod.coerce.date().nullable(),
+  activeUntil: zod.coerce.date().nullable(),
   displayOrder: zod.number(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
@@ -166,6 +170,8 @@ export const CreateServiceBody = zod.object({
   description: zod.string().nullish(),
   icon: zod.string().nullish(),
   active: zod.boolean().optional(),
+  activeFrom: zod.coerce.date().nullish(),
+  activeUntil: zod.coerce.date().nullish(),
   displayOrder: zod.number().optional(),
 });
 
@@ -182,6 +188,8 @@ export const GetServiceResponse = zod.object({
   description: zod.string().nullable(),
   icon: zod.string().nullable(),
   active: zod.boolean(),
+  activeFrom: zod.coerce.date().nullable(),
+  activeUntil: zod.coerce.date().nullable(),
   displayOrder: zod.number(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
@@ -199,6 +207,8 @@ export const UpdateServiceBody = zod.object({
   description: zod.string().nullish(),
   icon: zod.string().nullish(),
   active: zod.boolean().optional(),
+  activeFrom: zod.coerce.date().nullish(),
+  activeUntil: zod.coerce.date().nullish(),
   displayOrder: zod.number().optional(),
 });
 
@@ -208,6 +218,8 @@ export const UpdateServiceResponse = zod.object({
   description: zod.string().nullable(),
   icon: zod.string().nullable(),
   active: zod.boolean(),
+  activeFrom: zod.coerce.date().nullable(),
+  activeUntil: zod.coerce.date().nullable(),
   displayOrder: zod.number(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),

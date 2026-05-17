@@ -8,6 +8,8 @@ export const servicesTable = pgTable("services", {
   description: text("description"),
   icon: text("icon"),
   active: boolean("active").notNull().default(true),
+  activeFrom: timestamp("active_from", { withTimezone: true }),
+  activeUntil: timestamp("active_until", { withTimezone: true }),
   displayOrder: integer("display_order").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true })

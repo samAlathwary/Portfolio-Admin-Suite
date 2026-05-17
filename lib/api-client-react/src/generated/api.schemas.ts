@@ -68,6 +68,10 @@ export interface Service {
   /** @nullable */
   icon: string | null;
   active: boolean;
+  /** @nullable */
+  activeFrom: string | null;
+  /** @nullable */
+  activeUntil: string | null;
   displayOrder: number;
   createdAt: string;
   updatedAt: string;
@@ -81,6 +85,10 @@ export interface CreateServiceInput {
   /** @nullable */
   icon?: string | null;
   active?: boolean;
+  /** @nullable */
+  activeFrom?: string | null;
+  /** @nullable */
+  activeUntil?: string | null;
   displayOrder?: number;
 }
 
@@ -92,6 +100,10 @@ export interface UpdateServiceInput {
   /** @nullable */
   icon?: string | null;
   active?: boolean;
+  /** @nullable */
+  activeFrom?: string | null;
+  /** @nullable */
+  activeUntil?: string | null;
   displayOrder?: number;
 }
 

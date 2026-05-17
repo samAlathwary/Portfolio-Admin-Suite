@@ -48,10 +48,39 @@ const serviceSchema = z.object({
   description: z.string().nullable().optional(),
   icon: z.string().nullable().optional(),
   active: z.boolean().default(true),
+  activeFrom: z.string().optional(),
+  activeUntil: z.string().optional(),
   displayOrder: z.coerce.number().default(0),
 });
 
 type ServiceFormValues = z.infer<typeof serviceSchema>;
+
+function toDatetimeLocalValue(value?: string | null): string {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const offset = date.getTimezoneOffset();
+  const localDate = new Date(date.getTime() - offset * 60_000);
+  return localDate.toISOString().slice(0, 16);
+}
+
+function toIsoDateTime(value?: string): string | null {
+  if (!value) return null;
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function formatSchedule(value?: string | null): string | null {
+  if (!value) return null;
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return date.toLocaleString();
+}
 
 export default function ServicesPage() {
   const queryClient = useQueryClient();
@@ -73,6 +102,8 @@ export default function ServicesPage() {
       description: "",
       icon: "Layers",
       active: true,
+      activeFrom: "",
+      activeUntil: "",
       displayOrder: 0,
     },
   });
@@ -83,6 +114,8 @@ export default function ServicesPage() {
       ...data,
       description: data.description || null,
       icon: data.icon || null,
+      activeFrom: toIsoDateTime(data.activeFrom),
+      activeUntil: toIsoDateTime(data.activeUntil),
     };
 
     if (editingService) {
@@ -123,6 +156,8 @@ export default function ServicesPage() {
       description: service.description || "",
       icon: service.icon || "Layers",
       active: service.active,
+      activeFrom: toDatetimeLocalValue(service.activeFrom),
+      activeUntil: toDatetimeLocalValue(service.activeUntil),
       displayOrder: service.displayOrder,
     });
   };
@@ -269,6 +304,40 @@ export default function ServicesPage() {
                       </FormItem>
                     )}
                   />
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="activeFrom"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Active From</FormLabel>
+                          <FormControl>
+                            <Input type="datetime-local" {...field} value={field.value || ""} />
+                          </FormControl>
+                          <FormDescription>
+                            Optional. Leave empty to make activation immediate.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="activeUntil"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Active Until</FormLabel>
+                          <FormControl>
+                            <Input type="datetime-local" {...field} value={field.value || ""} />
+                          </FormControl>
+                          <FormDescription>
+                            Optional. Leave empty to keep the service active with no end date.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   <FormField
                     control={form.control}
                     name="active"
@@ -279,7 +348,7 @@ export default function ServicesPage() {
                             Active Service
                           </FormLabel>
                           <FormDescription>
-                            If inactive, it will be hidden from the website.
+                            If inactive, it will be hidden from the website. When schedule fields are set, they further limit when the service is shown.
                           </FormDescription>
                         </div>
                         <FormControl>
@@ -395,8 +464,42 @@ export default function ServicesPage() {
                       </FormControl>
                       <FormMessage />
                     </FormItem>
-                  )}
-                />
+                    )}
+                  />
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="activeFrom"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Active From</FormLabel>
+                        <FormControl>
+                          <Input type="datetime-local" {...field} value={field.value || ""} />
+                        </FormControl>
+                        <FormDescription>
+                          Optional. Leave empty to make activation immediate.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="activeUntil"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Active Until</FormLabel>
+                        <FormControl>
+                          <Input type="datetime-local" {...field} value={field.value || ""} />
+                        </FormControl>
+                        <FormDescription>
+                          Optional. Leave empty to keep the service active with no end date.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <FormField
                   control={form.control}
                   name="active"
@@ -407,7 +510,7 @@ export default function ServicesPage() {
                           Active Service
                         </FormLabel>
                         <FormDescription>
-                          If inactive, it will be hidden from the website.
+                          If inactive, it will be hidden from the website. When schedule fields are set, they further limit when the service is shown.
                         </FormDescription>
                       </div>
                       <FormControl>
@@ -503,6 +606,11 @@ export default function ServicesPage() {
                       <Badge variant={service.active ? "default" : "secondary"} className="text-[10px] px-1.5 h-5 font-normal">
                         {service.active ? "Active" : "Inactive"}
                       </Badge>
+                      {(service.activeFrom || service.activeUntil) && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 h-5 font-normal">
+                          Scheduled
+                        </Badge>
+                      )}
                       <Badge variant="outline" className="text-[10px] px-1.5 h-5 font-normal text-muted-foreground">Order: {service.displayOrder}</Badge>
                     </div>
                   </div>
@@ -511,6 +619,13 @@ export default function ServicesPage() {
                   <p className="text-sm text-muted-foreground line-clamp-3 min-h-[60px]">
                     {service.description || "No description provided."}
                   </p>
+                  {(service.activeFrom || service.activeUntil) && (
+                    <div className="rounded-lg border border-border/60 bg-secondary/40 px-3 py-2 text-xs text-muted-foreground">
+                      {service.activeFrom ? `From: ${formatSchedule(service.activeFrom)}` : "From: Immediately"}
+                      <br />
+                      {service.activeUntil ? `Until: ${formatSchedule(service.activeUntil)}` : "Until: No end date"}
+                    </div>
+                  )}
                   
                   <div className="flex flex-col gap-3 pt-4 border-t border-border/50">
                     <div className="flex items-center justify-between">

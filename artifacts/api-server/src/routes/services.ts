@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
-import { eq, asc, desc } from "drizzle-orm";
+import { eq, asc, desc, and, or, isNull, lte, gte } from "drizzle-orm";
+import { getAuth } from "@clerk/express";
 import { db, servicesTable } from "@workspace/db";
 import {
   CreateServiceBody,
@@ -12,11 +13,28 @@ import { requireAdmin } from "../middlewares/requireAuth";
 
 const router: IRouter = Router();
 
-router.get("/services", async (_req, res): Promise<void> => {
-  const services = await db
+router.get("/services", async (req, res): Promise<void> => {
+  const auth = getAuth(req);
+  const query = db
     .select()
-    .from(servicesTable)
-    .orderBy(asc(servicesTable.displayOrder), desc(servicesTable.createdAt));
+    .from(servicesTable);
+
+  if (!auth?.userId) {
+    const now = new Date();
+
+    query.where(
+      and(
+        eq(servicesTable.active, true),
+        or(isNull(servicesTable.activeFrom), lte(servicesTable.activeFrom, now)),
+        or(isNull(servicesTable.activeUntil), gte(servicesTable.activeUntil, now)),
+      ),
+    );
+  }
+
+  const services = await query.orderBy(
+    asc(servicesTable.displayOrder),
+    desc(servicesTable.createdAt),
+  );
   res.json(services);
 });
 

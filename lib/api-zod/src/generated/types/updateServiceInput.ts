@@ -14,5 +14,9 @@ export interface UpdateServiceInput {
   /** @nullable */
   icon?: string | null;
   active?: boolean;
+  /** @nullable */
+  activeFrom?: Date | null;
+  /** @nullable */
+  activeUntil?: Date | null;
   displayOrder?: number;
 }
