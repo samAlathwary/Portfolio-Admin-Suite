@@ -20,6 +20,14 @@ router.get("/partners", async (_req, res): Promise<void> => {
   res.json(partners);
 });
 
+router.get("/admin/partners", requireAdmin, async (_req, res): Promise<void> => {
+  const partners = await db
+    .select()
+    .from(partnersTable)
+    .orderBy(asc(partnersTable.displayOrder), desc(partnersTable.createdAt));
+  res.json(partners);
+});
+
 router.get("/partners/:id", async (req, res): Promise<void> => {
   const params = GetPartnerParams.safeParse(req.params);
   if (!params.success) {
@@ -40,7 +48,27 @@ router.get("/partners/:id", async (req, res): Promise<void> => {
   res.json(partner);
 });
 
-router.post("/partners", requireAdmin, async (req, res): Promise<void> => {
+router.get("/admin/partners/:id", requireAdmin, async (req, res): Promise<void> => {
+  const params = GetPartnerParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const [partner] = await db
+    .select()
+    .from(partnersTable)
+    .where(eq(partnersTable.id, params.data.id));
+
+  if (!partner) {
+    res.status(404).json({ error: "Partner not found" });
+    return;
+  }
+
+  res.json(partner);
+});
+
+router.post("/admin/partners", requireAdmin, async (req, res): Promise<void> => {
   const parsed = CreatePartnerBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -54,7 +82,7 @@ router.post("/partners", requireAdmin, async (req, res): Promise<void> => {
   res.status(201).json(partner);
 });
 
-router.patch("/partners/:id", requireAdmin, async (req, res): Promise<void> => {
+router.patch("/admin/partners/:id", requireAdmin, async (req, res): Promise<void> => {
   const params = UpdatePartnerParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -81,7 +109,7 @@ router.patch("/partners/:id", requireAdmin, async (req, res): Promise<void> => {
   res.json(partner);
 });
 
-router.delete("/partners/:id", requireAdmin, async (req, res): Promise<void> => {
+router.delete("/admin/partners/:id", requireAdmin, async (req, res): Promise<void> => {
   const params = DeletePartnerParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });

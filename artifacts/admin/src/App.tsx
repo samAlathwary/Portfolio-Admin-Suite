@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ClerkProvider, SignIn, SignUp, Show, useAuth } from "@clerk/react";
+import { ClerkProvider, SignIn, SignUp, Show, useAuth, useClerk } from "@clerk/react";
 import { shadcn } from "@clerk/themes";
 import { Switch, Route, useLocation, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
-import { setAuthTokenGetter, setBaseUrl } from "@workspace/api-client-react";
+import { setAuthTokenGetter, setBaseUrl, useGetAdminMe, getGetAdminMeQueryKey } from "@workspace/api-client-react";
 import { queryClient } from "@/lib/queryClient";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 import NotFound from "@/pages/not-found";
 
 import DashboardPage from "@/pages/dashboard";
@@ -120,15 +121,57 @@ function HomeRedirect() {
 }
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType<any> }) {
+  const { isSignedIn } = useAuth();
+  const adminMeQuery = useGetAdminMe({
+    query: {
+      queryKey: getGetAdminMeQueryKey(),
+      enabled: Boolean(isSignedIn),
+      retry: false,
+      staleTime: 60_000,
+    },
+  });
+
+  if (!isSignedIn) {
+    return <Redirect to="/" />;
+  }
+
+  if (adminMeQuery.isLoading) {
+    return (
+      <div className="flex min-h-[100dvh] items-center justify-center bg-secondary px-4">
+        <p className="text-sm text-muted-foreground">Checking admin access...</p>
+      </div>
+    );
+  }
+
+  if (adminMeQuery.data?.isAdmin) {
+    return <Component />;
+  }
+
+  return <AccessDeniedPage />;
+}
+
+function AccessDeniedPage() {
+  const clerk = useClerk();
+
   return (
-    <>
-      <Show when="signed-in">
-        <Component />
-      </Show>
-      <Show when="signed-out">
-        <Redirect to="/" />
-      </Show>
-    </>
+    <div className="flex min-h-[100dvh] items-center justify-center bg-secondary px-4">
+      <div className="w-full max-w-md rounded-2xl border bg-white p-8 text-center shadow-sm">
+        <h1 className="font-display text-2xl font-semibold text-foreground">Access denied</h1>
+        <p className="mt-3 text-sm text-muted-foreground">
+          This account is signed in with Clerk, but its email is not allowlisted in
+          <code className="mx-1 rounded bg-secondary px-1.5 py-0.5 text-xs">ADMIN_EMAILS</code>.
+        </p>
+        <Button
+          className="mt-6"
+          onClick={async () => {
+            await clerk.signOut();
+            window.location.assign(signInPath);
+          }}
+        >
+          Sign out
+        </Button>
+      </div>
+    </div>
   );
 }
 

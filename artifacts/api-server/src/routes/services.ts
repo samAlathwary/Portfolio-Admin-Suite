@@ -1,6 +1,5 @@
 import { Router, type IRouter } from "express";
 import { eq, asc, desc, and, or, isNull, lte, gte } from "drizzle-orm";
-import { getAuth } from "@clerk/express";
 import { db, servicesTable } from "@workspace/db";
 import {
   CreateServiceBody,
@@ -14,27 +13,34 @@ import { requireAdmin } from "../middlewares/requireAuth";
 const router: IRouter = Router();
 
 router.get("/services", async (req, res): Promise<void> => {
-  const auth = getAuth(req);
+  void req;
+  const now = new Date();
   const query = db
     .select()
-    .from(servicesTable);
-
-  if (!auth?.userId) {
-    const now = new Date();
-
-    query.where(
+    .from(servicesTable)
+    .where(
       and(
         eq(servicesTable.active, true),
         or(isNull(servicesTable.activeFrom), lte(servicesTable.activeFrom, now)),
         or(isNull(servicesTable.activeUntil), gte(servicesTable.activeUntil, now)),
       ),
     );
-  }
 
   const services = await query.orderBy(
     asc(servicesTable.displayOrder),
     desc(servicesTable.createdAt),
   );
+  res.json(services);
+});
+
+router.get("/admin/services", requireAdmin, async (_req, res): Promise<void> => {
+  const services = await db
+    .select()
+    .from(servicesTable)
+    .orderBy(
+      asc(servicesTable.displayOrder),
+      desc(servicesTable.createdAt),
+    );
   res.json(services);
 });
 
@@ -58,7 +64,27 @@ router.get("/services/:id", async (req, res): Promise<void> => {
   res.json(service);
 });
 
-router.post("/services", requireAdmin, async (req, res): Promise<void> => {
+router.get("/admin/services/:id", requireAdmin, async (req, res): Promise<void> => {
+  const params = GetServiceParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const [service] = await db
+    .select()
+    .from(servicesTable)
+    .where(eq(servicesTable.id, params.data.id));
+
+  if (!service) {
+    res.status(404).json({ error: "Service not found" });
+    return;
+  }
+
+  res.json(service);
+});
+
+router.post("/admin/services", requireAdmin, async (req, res): Promise<void> => {
   const parsed = CreateServiceBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -72,7 +98,7 @@ router.post("/services", requireAdmin, async (req, res): Promise<void> => {
   res.status(201).json(service);
 });
 
-router.patch("/services/:id", requireAdmin, async (req, res): Promise<void> => {
+router.patch("/admin/services/:id", requireAdmin, async (req, res): Promise<void> => {
   const params = UpdateServiceParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -99,7 +125,7 @@ router.patch("/services/:id", requireAdmin, async (req, res): Promise<void> => {
   res.json(service);
 });
 
-router.delete("/services/:id", requireAdmin, async (req, res): Promise<void> => {
+router.delete("/admin/services/:id", requireAdmin, async (req, res): Promise<void> => {
   const params = DeleteServiceParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });

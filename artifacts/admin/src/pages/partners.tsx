@@ -3,7 +3,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { 
-  useListPartners, getListPartnersQueryKey, 
+  useListAdminPartners, getListAdminPartnersQueryKey, 
   useCreatePartner, useUpdatePartner, useDeletePartner,
   getGetDashboardSummaryQueryKey
 } from "@workspace/api-client-react";
@@ -48,7 +48,7 @@ type PartnerFormValues = z.infer<typeof partnerSchema>;
 
 export default function PartnersPage() {
   const queryClient = useQueryClient();
-  const { data: partners, isLoading } = useListPartners({ query: { queryKey: getListPartnersQueryKey() } });
+  const { data: partners, isLoading } = useListAdminPartners({ query: { queryKey: getListAdminPartnersQueryKey() } });
   const partnerList = Array.isArray(partners) ? partners : [];
   
   const createPartner = useCreatePartner();
@@ -87,7 +87,7 @@ export default function PartnersPage() {
         { id: editingPartner.id, data: payload },
         {
           onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: getListPartnersQueryKey() });
+            queryClient.invalidateQueries({ queryKey: getListAdminPartnersQueryKey() });
             queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
             toast.success("Partner updated successfully");
             setEditingPartner(null);
@@ -101,7 +101,7 @@ export default function PartnersPage() {
         { data: payload },
         {
           onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: getListPartnersQueryKey() });
+            queryClient.invalidateQueries({ queryKey: getListAdminPartnersQueryKey() });
             queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
             toast.success("Partner created successfully");
             setIsCreateOpen(false);
@@ -133,7 +133,7 @@ export default function PartnersPage() {
       { id: partnerToDelete },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListPartnersQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getListAdminPartnersQueryKey() });
           queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
           toast.success("Partner deleted successfully");
           setPartnerToDelete(null);

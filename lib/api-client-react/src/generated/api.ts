@@ -17,6 +17,7 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
+  AdminMe,
   CreatePartnerInput,
   CreateServiceInput,
   DashboardSummary,
@@ -36,6 +37,80 @@ type AwaitedInput<T> = PromiseLike<T> | T;
 type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+/**
+ * Returns the current Clerk user identity and whether their email is allowlisted in ADMIN_EMAILS.
+ * @summary Get current authenticated admin status
+ */
+export const getGetAdminMeUrl = () => {
+  return `/api/auth/me`;
+};
+
+export const getAdminMe = async (options?: RequestInit): Promise<AdminMe> => {
+  return customFetch<AdminMe>(getGetAdminMeUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminMeQueryKey = () => {
+  return [`/api/auth/me`] as const;
+};
+
+export const getGetAdminMeQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminMe>>,
+  TError = ErrorType<Error>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminMe>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdminMeQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminMe>>> = ({
+    signal,
+  }) => getAdminMe({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminMe>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminMeQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminMe>>
+>;
+export type GetAdminMeQueryError = ErrorType<Error>;
+
+/**
+ * @summary Get current authenticated admin status
+ */
+
+export function useGetAdminMe<
+  TData = Awaited<ReturnType<typeof getAdminMe>>,
+  TError = ErrorType<Error>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminMe>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminMeQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * Returns server health status
@@ -266,10 +341,86 @@ export function useListPartners<
 }
 
 /**
+ * Returns all partner companies for the admin dashboard.
+ * @summary List partner companies for admin
+ */
+export const getListAdminPartnersUrl = () => {
+  return `/api/admin/partners`;
+};
+
+export const listAdminPartners = async (
+  options?: RequestInit,
+): Promise<Partner[]> => {
+  return customFetch<Partner[]>(getListAdminPartnersUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListAdminPartnersQueryKey = () => {
+  return [`/api/admin/partners`] as const;
+};
+
+export const getListAdminPartnersQueryOptions = <
+  TData = Awaited<ReturnType<typeof listAdminPartners>>,
+  TError = ErrorType<Error>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminPartners>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListAdminPartnersQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listAdminPartners>>
+  > = ({ signal }) => listAdminPartners({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminPartners>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListAdminPartnersQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listAdminPartners>>
+>;
+export type ListAdminPartnersQueryError = ErrorType<Error>;
+
+/**
+ * @summary List partner companies for admin
+ */
+
+export function useListAdminPartners<
+  TData = Awaited<ReturnType<typeof listAdminPartners>>,
+  TError = ErrorType<Error>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminPartners>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListAdminPartnersQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
  * @summary Create a new partner company
  */
 export const getCreatePartnerUrl = () => {
-  return `/api/partners`;
+  return `/api/admin/partners`;
 };
 
 export const createPartner = async (
@@ -439,10 +590,97 @@ export function useGetPartner<
 }
 
 /**
+ * @summary Get a single partner for admin
+ */
+export const getGetAdminPartnerUrl = (id: number) => {
+  return `/api/admin/partners/${id}`;
+};
+
+export const getAdminPartner = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Partner> => {
+  return customFetch<Partner>(getGetAdminPartnerUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminPartnerQueryKey = (id: number) => {
+  return [`/api/admin/partners/${id}`] as const;
+};
+
+export const getGetAdminPartnerQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminPartner>>,
+  TError = ErrorType<Error>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminPartner>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdminPartnerQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminPartner>>> = ({
+    signal,
+  }) => getAdminPartner(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminPartner>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminPartnerQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminPartner>>
+>;
+export type GetAdminPartnerQueryError = ErrorType<Error>;
+
+/**
+ * @summary Get a single partner for admin
+ */
+
+export function useGetAdminPartner<
+  TData = Awaited<ReturnType<typeof getAdminPartner>>,
+  TError = ErrorType<Error>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminPartner>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminPartnerQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
  * @summary Update a partner
  */
 export const getUpdatePartnerUrl = (id: number) => {
-  return `/api/partners/${id}`;
+  return `/api/admin/partners/${id}`;
 };
 
 export const updatePartner = async (
@@ -529,7 +767,7 @@ export const useUpdatePartner = <
  * @summary Delete a partner
  */
 export const getDeletePartnerUrl = (id: number) => {
-  return `/api/partners/${id}`;
+  return `/api/admin/partners/${id}`;
 };
 
 export const deletePartner = async (
@@ -686,10 +924,86 @@ export function useListServices<
 }
 
 /**
+ * Returns all services for the admin dashboard.
+ * @summary List services for admin
+ */
+export const getListAdminServicesUrl = () => {
+  return `/api/admin/services`;
+};
+
+export const listAdminServices = async (
+  options?: RequestInit,
+): Promise<Service[]> => {
+  return customFetch<Service[]>(getListAdminServicesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListAdminServicesQueryKey = () => {
+  return [`/api/admin/services`] as const;
+};
+
+export const getListAdminServicesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listAdminServices>>,
+  TError = ErrorType<Error>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminServices>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListAdminServicesQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listAdminServices>>
+  > = ({ signal }) => listAdminServices({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminServices>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListAdminServicesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listAdminServices>>
+>;
+export type ListAdminServicesQueryError = ErrorType<Error>;
+
+/**
+ * @summary List services for admin
+ */
+
+export function useListAdminServices<
+  TData = Awaited<ReturnType<typeof listAdminServices>>,
+  TError = ErrorType<Error>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listAdminServices>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListAdminServicesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
  * @summary Create a service
  */
 export const getCreateServiceUrl = () => {
-  return `/api/services`;
+  return `/api/admin/services`;
 };
 
 export const createService = async (
@@ -859,10 +1173,97 @@ export function useGetService<
 }
 
 /**
+ * @summary Get a single service for admin
+ */
+export const getGetAdminServiceUrl = (id: number) => {
+  return `/api/admin/services/${id}`;
+};
+
+export const getAdminService = async (
+  id: number,
+  options?: RequestInit,
+): Promise<Service> => {
+  return customFetch<Service>(getGetAdminServiceUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAdminServiceQueryKey = (id: number) => {
+  return [`/api/admin/services/${id}`] as const;
+};
+
+export const getGetAdminServiceQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdminService>>,
+  TError = ErrorType<Error>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminService>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdminServiceQueryKey(id);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdminService>>> = ({
+    signal,
+  }) => getAdminService(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdminService>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAdminServiceQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAdminService>>
+>;
+export type GetAdminServiceQueryError = ErrorType<Error>;
+
+/**
+ * @summary Get a single service for admin
+ */
+
+export function useGetAdminService<
+  TData = Awaited<ReturnType<typeof getAdminService>>,
+  TError = ErrorType<Error>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getAdminService>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAdminServiceQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
  * @summary Update a service
  */
 export const getUpdateServiceUrl = (id: number) => {
-  return `/api/services/${id}`;
+  return `/api/admin/services/${id}`;
 };
 
 export const updateService = async (
@@ -949,7 +1350,7 @@ export const useUpdateService = <
  * @summary Delete a service
  */
 export const getDeleteServiceUrl = (id: number) => {
-  return `/api/services/${id}`;
+  return `/api/admin/services/${id}`;
 };
 
 export const deleteService = async (

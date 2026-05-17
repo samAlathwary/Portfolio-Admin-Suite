@@ -8,6 +8,16 @@
 import * as zod from "zod";
 
 /**
+ * Returns the current Clerk user identity and whether their email is allowlisted in ADMIN_EMAILS.
+ * @summary Get current authenticated admin status
+ */
+export const GetAdminMeResponse = zod.object({
+  userId: zod.string(),
+  email: zod.string().email().nullable(),
+  isAdmin: zod.boolean(),
+});
+
+/**
  * Returns server health status
  * @summary Health check
  */
@@ -73,6 +83,26 @@ export const ListPartnersResponseItem = zod.object({
 export const ListPartnersResponse = zod.array(ListPartnersResponseItem);
 
 /**
+ * Returns all partner companies for the admin dashboard.
+ * @summary List partner companies for admin
+ */
+export const ListAdminPartnersResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  logoUrl: zod.string().nullable(),
+  websiteUrl: zod.string().nullable(),
+  description: zod.string().nullable(),
+  industry: zod.string().nullable(),
+  featured: zod.boolean(),
+  displayOrder: zod.number(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListAdminPartnersResponse = zod.array(
+  ListAdminPartnersResponseItem,
+);
+
+/**
  * @summary Create a new partner company
  */
 
@@ -94,6 +124,26 @@ export const GetPartnerParams = zod.object({
 });
 
 export const GetPartnerResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  logoUrl: zod.string().nullable(),
+  websiteUrl: zod.string().nullable(),
+  description: zod.string().nullable(),
+  industry: zod.string().nullable(),
+  featured: zod.boolean(),
+  displayOrder: zod.number(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Get a single partner for admin
+ */
+export const GetAdminPartnerParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetAdminPartnerResponse = zod.object({
   id: zod.number(),
   name: zod.string(),
   logoUrl: zod.string().nullable(),
@@ -162,6 +212,26 @@ export const ListServicesResponseItem = zod.object({
 export const ListServicesResponse = zod.array(ListServicesResponseItem);
 
 /**
+ * Returns all services for the admin dashboard.
+ * @summary List services for admin
+ */
+export const ListAdminServicesResponseItem = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  description: zod.string().nullable(),
+  icon: zod.string().nullable(),
+  active: zod.boolean(),
+  activeFrom: zod.coerce.date().nullable(),
+  activeUntil: zod.coerce.date().nullable(),
+  displayOrder: zod.number(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListAdminServicesResponse = zod.array(
+  ListAdminServicesResponseItem,
+);
+
+/**
  * @summary Create a service
  */
 
@@ -183,6 +253,26 @@ export const GetServiceParams = zod.object({
 });
 
 export const GetServiceResponse = zod.object({
+  id: zod.number(),
+  title: zod.string(),
+  description: zod.string().nullable(),
+  icon: zod.string().nullable(),
+  active: zod.boolean(),
+  activeFrom: zod.coerce.date().nullable(),
+  activeUntil: zod.coerce.date().nullable(),
+  displayOrder: zod.number(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Get a single service for admin
+ */
+export const GetAdminServiceParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetAdminServiceResponse = zod.object({
   id: zod.number(),
   title: zod.string(),
   description: zod.string().nullable(),

@@ -13,6 +13,13 @@ export interface Error {
   error: string;
 }
 
+export interface AdminMe {
+  userId: string;
+  /** @nullable */
+  email: string | null;
+  isAdmin: boolean;
+}
+
 export interface Partner {
   id: number;
   name: string;

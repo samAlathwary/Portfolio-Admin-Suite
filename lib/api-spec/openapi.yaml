@@ -8,6 +8,8 @@ servers:
   - url: /api
     description: Base API path
 tags:
+  - name: auth
+    description: Authenticated user operations
   - name: health
     description: Health operations
   - name: partners
@@ -18,6 +20,26 @@ tags:
     description: Dashboard summaries
 
 paths:
+  /auth/me:
+    get:
+      operationId: getAdminMe
+      tags: [auth]
+      summary: Get current authenticated admin status
+      description: Returns the current Clerk user identity and whether their email is allowlisted in ADMIN_EMAILS.
+      responses:
+        "200":
+          description: Current authenticated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminMe"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /healthz:
     get:
       operationId: healthCheck
@@ -61,6 +83,34 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Partner"
+
+  /admin/partners:
+    get:
+      operationId: listAdminPartners
+      tags: [partners]
+      summary: List partner companies for admin
+      description: Returns all partner companies for the admin dashboard.
+      responses:
+        "200":
+          description: List of partners
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Partner"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
     post:
       operationId: createPartner
       tags: [partners]
@@ -90,6 +140,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /partners/{id}:
     get:
@@ -109,6 +165,43 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Partner"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /admin/partners/{id}:
+    get:
+      operationId: getAdminPartner
+      tags: [partners]
+      summary: Get a single partner for admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Partner
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Partner"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "404":
           description: Not found
           content:
@@ -144,6 +237,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "404":
           description: Not found
           content:
@@ -165,6 +264,12 @@ paths:
           description: Deleted
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
           content:
             application/json:
               schema:
@@ -191,6 +296,34 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Service"
+
+  /admin/services:
+    get:
+      operationId: listAdminServices
+      tags: [services]
+      summary: List services for admin
+      description: Returns all services for the admin dashboard.
+      responses:
+        "200":
+          description: List of services
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Service"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
     post:
       operationId: createService
       tags: [services]
@@ -220,6 +353,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /services/{id}:
     get:
@@ -239,6 +378,43 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Service"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /admin/services/{id}:
+    get:
+      operationId: getAdminService
+      tags: [services]
+      summary: Get a single service for admin
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Service
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "404":
           description: Not found
           content:
@@ -274,6 +450,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "404":
           description: Not found
           content:
@@ -295,6 +477,12 @@ paths:
           description: Deleted
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden
           content:
             application/json:
               schema:
@@ -323,6 +511,21 @@ components:
           type: string
       required:
         - error
+
+    AdminMe:
+      type: object
+      properties:
+        userId:
+          type: string
+        email:
+          type: ["string", "null"]
+          format: email
+        isAdmin:
+          type: boolean
+      required:
+        - userId
+        - email
+        - isAdmin
 
     Partner:
       type: object

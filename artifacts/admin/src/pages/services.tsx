@@ -3,7 +3,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { 
-  useListServices, getListServicesQueryKey, 
+  useListAdminServices, getListAdminServicesQueryKey, 
   useCreateService, useUpdateService, useDeleteService,
   getGetDashboardSummaryQueryKey
 } from "@workspace/api-client-react";
@@ -84,7 +84,7 @@ function formatSchedule(value?: string | null): string | null {
 
 export default function ServicesPage() {
   const queryClient = useQueryClient();
-  const { data: services, isLoading } = useListServices({ query: { queryKey: getListServicesQueryKey() } });
+  const { data: services, isLoading } = useListAdminServices({ query: { queryKey: getListAdminServicesQueryKey() } });
   const serviceList = Array.isArray(services) ? services : [];
   
   const createService = useCreateService();
@@ -123,7 +123,7 @@ export default function ServicesPage() {
         { id: editingService.id, data: payload },
         {
           onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: getListServicesQueryKey() });
+            queryClient.invalidateQueries({ queryKey: getListAdminServicesQueryKey() });
             queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
             toast.success("Service updated successfully");
             setEditingService(null);
@@ -137,7 +137,7 @@ export default function ServicesPage() {
         { data: payload },
         {
           onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: getListServicesQueryKey() });
+            queryClient.invalidateQueries({ queryKey: getListAdminServicesQueryKey() });
             queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
             toast.success("Service created successfully");
             setIsCreateOpen(false);
@@ -169,7 +169,7 @@ export default function ServicesPage() {
       { id: serviceToDelete },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListServicesQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getListAdminServicesQueryKey() });
           queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });
           toast.success("Service deleted successfully");
           setServiceToDelete(null);
@@ -184,7 +184,7 @@ export default function ServicesPage() {
       { id: service.id, data: { ...service, active: isActive } },
       {
         onSuccess: () => {
-          queryClient.setQueryData(getListServicesQueryKey(), (old: any) => 
+          queryClient.setQueryData(getListAdminServicesQueryKey(), (old: any) => 
             old ? old.map((s: any) => s.id === service.id ? { ...s, active: isActive } : s) : old
           );
           queryClient.invalidateQueries({ queryKey: getGetDashboardSummaryQueryKey() });

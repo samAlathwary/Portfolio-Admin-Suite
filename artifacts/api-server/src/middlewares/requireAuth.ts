@@ -36,6 +36,29 @@ function parseAdminEmails(): Set<string> {
   );
 }
 
+export async function getUserEmailFromClerk(userId: string): Promise<string | null> {
+  const user = await clerkClient.users.getUser(userId);
+  return user.emailAddresses[0]?.emailAddress?.toLowerCase().trim() ?? null;
+}
+
+export async function getAdminContext(userId: string): Promise<{
+  userEmail: string | null;
+  isAdmin: boolean;
+}> {
+  const adminEmails = parseAdminEmails();
+
+  if (adminEmails.size === 0) {
+    throw new Error("ADMIN_EMAILS is not configured");
+  }
+
+  const userEmail = await getUserEmailFromClerk(userId);
+
+  return {
+    userEmail,
+    isAdmin: Boolean(userEmail && adminEmails.has(userEmail)),
+  };
+}
+
 export function requireAuth(
   req: AuthedRequest,
   res: Response,
@@ -62,13 +85,6 @@ export function requireAdmin(
   next: NextFunction,
 ): void {
   requireAuth(req, res, async () => {
-    const adminEmails = parseAdminEmails();
-
-    if (adminEmails.size === 0) {
-      res.status(500).json({ error: "ADMIN_EMAILS is not configured" });
-      return;
-    }
-
     const userId = req.userId;
     if (!userId) {
       res.status(401).json({ error: "Unauthorized" });
@@ -76,18 +92,22 @@ export function requireAdmin(
     }
 
     try {
-      const user = await clerkClient.users.getUser(userId);
-      const userEmail = user.emailAddresses[0]?.emailAddress?.toLowerCase().trim();
+      const { userEmail, isAdmin } = await getAdminContext(userId);
 
       req.userEmail = userEmail ?? undefined;
 
-      if (!userEmail || !adminEmails.has(userEmail)) {
+      if (!isAdmin) {
         res.status(403).json({ error: "Forbidden" });
         return;
       }
 
       next();
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && error.message === "ADMIN_EMAILS is not configured") {
+        res.status(500).json({ error: error.message });
+        return;
+      }
+
       res.status(500).json({ error: "Failed to load user from Clerk" });
     }
   });
