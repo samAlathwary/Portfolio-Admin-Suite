@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { getAuth } from "@clerk/express";
+import { clerkClient, getAuth } from "@clerk/express";
 
 export interface AuthedRequest extends Request {
   userId?: string;
@@ -61,7 +61,7 @@ export function requireAdmin(
   res: Response,
   next: NextFunction,
 ): void {
-  requireAuth(req, res, () => {
+  requireAuth(req, res, async () => {
     const adminEmails = parseAdminEmails();
 
     if (adminEmails.size === 0) {
@@ -69,12 +69,26 @@ export function requireAdmin(
       return;
     }
 
-    const userEmail = req.userEmail;
-    if (!userEmail || !adminEmails.has(userEmail)) {
-      res.status(403).json({ error: "Forbidden" });
+    const userId = req.userId;
+    if (!userId) {
+      res.status(401).json({ error: "Unauthorized" });
       return;
     }
 
-    next();
+    try {
+      const user = await clerkClient.users.getUser(userId);
+      const userEmail = user.emailAddresses[0]?.emailAddress?.toLowerCase().trim();
+
+      req.userEmail = userEmail ?? undefined;
+
+      if (!userEmail || !adminEmails.has(userEmail)) {
+        res.status(403).json({ error: "Forbidden" });
+        return;
+      }
+
+      next();
+    } catch {
+      res.status(500).json({ error: "Failed to load user from Clerk" });
+    }
   });
 }
