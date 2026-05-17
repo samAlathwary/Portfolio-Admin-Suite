@@ -360,6 +360,16 @@ export async function customFetch<T = unknown>(
 
   const requestInfo = { method, url: resolveUrl(input) };
 
+  const authorizationHeader = headers.get("authorization");
+  console.log("[customFetch auth debug]", {
+    url: requestInfo.url,
+    hasAuthorizationHeader: Boolean(authorizationHeader),
+    authorizationPreview:
+      typeof authorizationHeader === "string"
+        ? authorizationHeader.slice(0, 20)
+        : null,
+  });
+
   const response = await fetch(input, { ...init, method, headers });
 
   if (!response.ok) {
